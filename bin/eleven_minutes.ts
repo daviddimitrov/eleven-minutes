@@ -1,9 +1,9 @@
 #!/opt/homebrew/opt/node/bin/node
 import * as cdk from 'aws-cdk-lib';
-import { ElevenStack } from '../lib/eleven-stack';
+import { ElevenMinutesStack } from '../lib/eleven-minutes-stack';
 
 const app = new cdk.App();
-new ElevenStack(app, 'ElevenStack', {
+new ElevenMinutesStack(app, 'ElevenMinutesStack', {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */

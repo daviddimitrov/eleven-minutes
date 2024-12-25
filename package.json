@@ -1,8 +1,8 @@
 {
-  "name": "eleven",
+  "name": "eleven_minutes",
   "version": "0.1.0",
   "bin": {
-    "eleven": "bin/eleven.js"
+    "eleven_minutes": "bin/eleven_minutes.js"
   },
   "scripts": {
     "build": "tsc",
