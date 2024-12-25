@@ -40,3 +40,4 @@ We welcome contributions! If you have ideas for features, improvements, or bug f
 ## License
 Eleven Minutes is released under the MIT License. See the LICENSE file for more information.
 
+![Alt text](assets/images/logo.png)
