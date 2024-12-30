@@ -1,9 +1,11 @@
-CREATE TABLE IF NOT EXISTS public.tasks (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES public.users(id) ON DELETE CASCADE,
-    priority_level INTEGER REFERENCES public.priority_levels(id) ON DELETE RESTRICT,
+CREATE TABLE IF NOT EXISTS tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id VARCHAR(255),
+    priority_level INT,
     name VARCHAR(255) NOT NULL,
-    duration INTEGER,
+    duration INT,
     due_date DATE,
-    rhythm INTEGER
+    rhythm INT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (priority_level) REFERENCES priority_levels(id) ON DELETE RESTRICT
 );

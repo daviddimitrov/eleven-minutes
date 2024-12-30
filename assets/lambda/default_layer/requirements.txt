@@ -1,0 +1,4 @@
+requests
+pymysql
+python-telegram-bot
+

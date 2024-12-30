@@ -1,5 +1,5 @@
-CREATE TABLE IF NOT EXISTS public.users (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    default_duration INTEGER
+    default_duration INT
 );
