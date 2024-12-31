@@ -142,6 +142,29 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Task not found
+  /user:
+    post:
+      tags:
+        - user
+      summary: Add a new user
+      operationId: addUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
   /user/{userId}:
     put:
         tags:
