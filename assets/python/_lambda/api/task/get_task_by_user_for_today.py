@@ -29,8 +29,11 @@ def lambda_handler(event, context):
         )
         
         # Fetch tasks for the user
-        tasks = session.query(Task).filter_by(user_id=user_id).filter(Task.due_date <= func.curdate()).all()
-        
+        tasks = session.query(Task).filter_by(user_id=user_id).filter(Task.due_date <= func.curdate()).order_by(
+            Task.priority_level_id.asc(),  # Sort by priority_level_id in ascending order
+            Task.due_date.asc(),  # Sort by due_date in descending order
+            Task.rhythm.asc()  # Sort by rhythm in ascending order
+        ).all()
         todays_tasks = []
         duration_today = 0
         
