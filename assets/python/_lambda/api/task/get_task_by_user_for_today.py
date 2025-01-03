@@ -36,14 +36,15 @@ def lambda_handler(event, context):
         
         # Filter tasks based on the user’s default duration
         for task in tasks:
+            priority_level = session.query(PriorityLevel).filter_by(id=task.priority_level_id).first()
             # Convert to TaskDTO
-            task_dto = TaskDTO(
+            task_dto = GetTaskDTO(
                 id=task.id,
-                user_id=task.user_id,
-                priority_level_id=task.priority_level_id,
+                userId=UserDTO(id=task.user_id, name=user.name, default_duration=user.default_duration),
+                priorityLevel=PriorityLevelDTO(id=task.priority_level_id, name=priority_level.name),
                 name=task.name,
                 duration=task.duration,
-                due_date=task.due_date.isoformat(),
+                dueDate=task.due_date.isoformat(),
                 rhythm=task.rhythm
             )
             
