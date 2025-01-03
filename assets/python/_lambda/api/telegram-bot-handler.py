@@ -11,6 +11,11 @@ def process_message(event):
         return
 
     chat_id = body["message"]["chat"]["id"]
+    message = body['message']
+    
+    if 'text' not in message:
+        return
+
     text = body["message"]["text"]
 
     split_text = text.split("_")
@@ -19,17 +24,17 @@ def process_message(event):
 
     if command == '/today':
         response = requests.get(
-            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
-            timeout=30
+        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
+        timeout=30
         )
         tasks = response.json()
+        print(tasks)
 
         if not tasks:
             reply = f"Alles geschafft!"
         else:
             task_list = ["• {} <i>({}min)</i> /done_{}".format(task["name"], task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n" + "\n".join(task_list)
-    
     elif command == '/done':    
         response = requests.get(
             f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/task/{id}",
@@ -37,12 +42,14 @@ def process_message(event):
         )    
         task = response.json()
         
-        current_due_date = datetime.datetime.strptime(task["dueDate"], "%Y-%m-%d")
-        new_due_date = current_due_date + datetime.timedelta(days=task["rhythm"])
-        str_new_due_date = new_due_date.strftime("%Y-%m-%d")
+        date_1 = datetime.datetime.strptime(task["dueDate"], "%Y-%m-%d")
+        end_date = date_1 + datetime.timedelta(days=task["rhythm"])
+        string_date = end_date.strftime("%Y-%m-%d")
 
-        task['dueDate'] = str_new_due_date
+        # Update the dueDate field
+        task['dueDate'] = string_date
 
+        # Convert to JSON string with double-quoted property names
         formatted_task = json.dumps(task, ensure_ascii=False, indent=4)
 
         response = requests.put(
