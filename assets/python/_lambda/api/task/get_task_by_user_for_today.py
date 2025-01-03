@@ -10,12 +10,8 @@ from sqlalchemy import func
 def lambda_handler(event, context):
     session = get_session()
     try:
-        if not validate_input:
-            return create_response(HTTPStatus.BAD_REQUEST, {"message": "Parameters missing"})
-        
         user_id = event['pathParameters']['userId']
 
-        
         user = session.query(User).filter_by(id=user_id).first()
         
         if user is None:
