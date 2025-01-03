@@ -9,3 +9,6 @@ cdk.out
 
 .DS_Store
 quick_notes.txt
+
+assets/python/_lambda/default_layer/python/lib/*
+assets/python/_lambda/default_layer/default_layer.zip
