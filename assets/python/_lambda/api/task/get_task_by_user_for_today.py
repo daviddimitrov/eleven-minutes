@@ -2,6 +2,7 @@ from orm.get_session import get_session
 from orm.base import User, Task, PriorityLevel
 from dto.base import UserDTO, TaskDTO, PriorityLevelDTO, GetTaskDTO
 from shared.response import create_response, HTTPStatus
+from shared.validation import validate_input
 from dataclasses import asdict
 from sqlalchemy import func
 
@@ -9,7 +10,11 @@ from sqlalchemy import func
 def lambda_handler(event, context):
     session = get_session()
     try:
-        user_id = event['queryStringParameters'].get('user_id')
+        if not validate_input:
+            return create_response(HTTPStatus.BAD_REQUEST, {"message": "Parameters missing"})
+        
+        user_id = event['pathParameters']['userId']
+
         
         user = session.query(User).filter_by(id=user_id).first()
         
