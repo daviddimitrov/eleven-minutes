@@ -33,7 +33,7 @@ def process_message(event):
         if not tasks:
             reply = f"Alles geschafft!"
         else:
-            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], datetime.strptime(task["dueDate"], "%Y-%m-%d").strftime("%d.%m."), task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/all':
         response = requests.get(
@@ -46,7 +46,7 @@ def process_message(event):
         if not tasks:
             reply = f"Du hast noch keine Aufgaben, {body["message"]["from"]["first_name"]}."
         else:
-            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], datetime.strptime(task["dueDate"], "%Y-%m-%d").strftime("%d.%m."), task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Deine Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/done':    
         response = requests.get(
@@ -76,6 +76,28 @@ def process_message(event):
     # Telegram API aufrufen
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     requests.post(url, json={"chat_id": chat_id, "text": reply, "parse_mode": "HTML"})
+
+from datetime import datetime
+
+def get_relative_date(date_str: str) -> str:
+    try:
+        due_date = datetime.strptime(date_str, "%Y-%m-%d")
+        today = datetime.today()
+        delta = (due_date - today).days+1
+
+        if delta == 0:
+            return "heute"
+        elif delta == 1:
+            return "morgen"
+        elif delta > 1:
+            return f"in {delta} Tagen"
+        elif delta == -1:
+            return "gestern"
+        else:
+            return f"vor {-delta} Tagen"
+    except ValueError:
+        return "Ungültiges Datumsformat. Bitte ein Datum im Format 'YYYY-MM-DD' übergeben."
+
 
 def lambda_handler(event, context):
     """AWS Lambda Handler"""
