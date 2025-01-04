@@ -33,7 +33,7 @@ def process_message(event):
         if not tasks:
             reply = f"Alles geschafft!"
         else:
-            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{} {}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_priority_emoji(task["priorityLevel"]["name"]), get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/all':
         response = requests.get(
@@ -46,7 +46,7 @@ def process_message(event):
         if not tasks:
             reply = f"Du hast noch keine Aufgaben, {body["message"]["from"]["first_name"]}."
         else:
-            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{} {}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_priority_emoji(task["priorityLevel"]["name"]), get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Deine Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/done':    
         response = requests.get(
@@ -98,6 +98,18 @@ def get_relative_date(date_str: str) -> str:
     except ValueError:
         return "Ungültiges Datumsformat. Bitte ein Datum im Format 'YYYY-MM-DD' übergeben."
 
+def get_priority_emoji(priority_name: str) -> str:
+    match priority_name:
+        case 'LOW':
+            return "🟢"
+        case 'MEDIUM':
+            return "🟡"
+        case 'HIGH':
+            return "🔴"
+        case 'ASAP':
+            return "❗️"
+        case _:
+            return "⚪️"
 
 def lambda_handler(event, context):
     """AWS Lambda Handler"""
