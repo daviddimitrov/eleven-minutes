@@ -33,11 +33,11 @@ def process_message(event):
         if not tasks:
             reply = f"Alles geschafft!"
         else:
-            task_list = ["• {} <i>({}min)</i> /done_{}".format(task["name"], task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], datetime.strptime(task["dueDate"], "%Y-%m-%d").strftime("%d.%m."), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/all':
         response = requests.get(
-        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
+        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks",
         timeout=30
         )
         tasks = response.json()
@@ -46,7 +46,7 @@ def process_message(event):
         if not tasks:
             reply = f"Du hast noch keine Aufgaben, {body["message"]["from"]["first_name"]}."
         else:
-            task_list = ["• {} <i>({}min)</i> /done_{}".format(task["name"], task["duration"], task["id"]) for task in tasks]
+            task_list = ["<strong>{}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], datetime.strptime(task["dueDate"], "%Y-%m-%d").strftime("%d.%m."), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Deine Aufgaben:</b>\n" + "\n".join(task_list)
     elif command == '/done':    
         response = requests.get(
