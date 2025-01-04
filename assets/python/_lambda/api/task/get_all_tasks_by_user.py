@@ -1,85 +1,58 @@
-import json
-import requests
-from datetime import datetime, timedelta
+from orm.get_session import get_session
+from orm.base import User, Task, PriorityLevel
+from dto.base import UserDTO, TaskDTO, PriorityLevelDTO, GetTaskDTO
+from shared.response import create_response, HTTPStatus
+from shared.validation import validate_input
+from dataclasses import asdict
+from sqlalchemy import func
 
-TELEGRAM_TOKEN = "7847443833:AAFA5QtHAF7U8mAdn_Bgy52V0TNG7xSo5Ic"  # Ersetze durch deinen Token
-
-def process_message(event):
-    """Verarbeite eingehende Nachrichten und antworte."""
-    body = json.loads(event["body"])
-    if "message" not in body:  # Handle nur Nachrichten, keine anderen Updates
-        return
-
-    chat_id = body["message"]["chat"]["id"]
-    message = body['message']
-    
-    if 'text' not in message:
-        return
-
-    text = body["message"]["text"]
-
-    split_text = text.split("_")
-    command = split_text[0]
-    id = split_text[-1]
-
-    if command == '/today':
-        response = requests.get(
-        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
-        timeout=30
-        )
-        tasks = response.json()
-        print(tasks)
-
-        if not tasks:
-            reply = f"Alles geschafft!"
-        else:
-            task_list = ["• {} <i>({}min)</i> /done_{}".format(task["name"], task["duration"], task["id"]) for task in tasks]
-            reply = "<b>Heutige Aufgaben:</b>\n" + "\n".join(task_list)
-    elif command == '/all':
-        response = requests.get(
-        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks",
-        timeout=30
-        )
-        tasks = response.json()
-        print(tasks)
-
-        if not tasks:
-            reply = f"Du hast noch keine Aufgaben, {body["message"]["from"]["first_name"]}."
-        else:
-            task_list = ["• {} <i>({}, {}min)</i> /done_{}".format(task["name"], task["dueDate"], task["duration"], task["id"]) for task in tasks]
-            reply = "<b>Deine Aufgaben:</b>\n" + "\n".join(task_list)
-    elif command == '/done':    
-        response = requests.get(
-            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/task/{id}",
-            timeout=30
-        )    
-        task = response.json()
-        
-        end_date = datetime.today() + timedelta(days=task["rhythm"])
-        string_date = end_date.strftime("%Y-%m-%d")
-
-        # Update the dueDate field
-        task['dueDate'] = string_date
-
-        # Convert to JSON string with double-quoted property names
-        formatted_task = json.dumps(task, ensure_ascii=False, indent=4)
-
-        response = requests.put(
-            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/task/{id}",
-            data=formatted_task,                         
-        )
-
-        reply = f"Du hast <b>{task['name']}</b> geschafft!"
-    else:
-        reply = f"<b>Willkommen, {body["message"]["from"]["first_name"]}!</b> \nSchau nach was du heute zu tun hast: /today"
-    
-    # Telegram API aufrufen
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    requests.post(url, json={"chat_id": chat_id, "text": reply, "parse_mode": "HTML"})
 
 def lambda_handler(event, context):
-    """AWS Lambda Handler"""
-    if event["httpMethod"] == "POST":
-        process_message(event)
-        return {"statusCode": 200, "body": json.dumps({"message": "OK"})}
-    return {"statusCode": 405, "body": "Method Not Allowed"}
+    session = get_session()
+    try:
+        user_id = event['pathParameters']['userId']
+
+        user = session.query(User).filter_by(id=user_id).first()
+        
+        if user is None:
+            return create_response(HTTPStatus.NOT_FOUND, {"message": "User not found"})
+        
+        # Use the UserDTO to structure the user data
+        user_dto = UserDTO(
+            id=user.id,
+            name=user.name,
+            default_duration=user.default_duration
+        )
+        
+        # Fetch tasks for the user
+        tasks = session.query(Task).filter_by(user_id=user_id).order_by(
+            Task.due_date.asc(),  # Sort by due_date in descending order
+            Task.priority_level_id.asc(),  # Sort by priority_level_id in ascending order
+            Task.rhythm.asc()  # Sort by rhythm in ascending order
+        ).all()
+        task_dtos = []
+        
+        # Filter tasks based on the user’s default duration
+        for task in tasks:
+            priority_level = session.query(PriorityLevel).filter_by(id=task.priority_level_id).first()
+            # Convert to TaskDTO
+            task_dto = GetTaskDTO(
+                id=task.id,
+                userId=UserDTO(id=task.user_id, name=user.name, default_duration=user.default_duration),
+                priorityLevel=PriorityLevelDTO(id=task.priority_level_id, name=priority_level.name),
+                name=task.name,
+                duration=task.duration,
+                dueDate=task.due_date.isoformat(),
+                rhythm=task.rhythm
+            )
+            task_dtos.append(task_dto)
+        
+        # Return the response
+        return create_response(HTTPStatus.OK, [asdict(task_dto) for task_dto in task_dtos])
+
+    
+    except Exception as e:
+        session.rollback()
+        return create_response(HTTPStatus.INTERNAL_SERVER_ERROR, {"message": "An error occurred", "error": str(e)})
+    finally:
+            session.close()
