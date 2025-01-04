@@ -1,8 +1,8 @@
 import json
 import requests
-import datetime
+from datetime import datetime, timedelta
 
-TELEGRAM_TOKEN = "TOKEN"  # Ersetze durch deinen Token
+TELEGRAM_TOKEN = "7847443833:AAFA5QtHAF7U8mAdn_Bgy52V0TNG7xSo5Ic"  # Ersetze durch deinen Token
 
 def process_message(event):
     """Verarbeite eingehende Nachrichten und antworte."""
@@ -42,8 +42,7 @@ def process_message(event):
         )    
         task = response.json()
         
-        date_1 = datetime.datetime.strptime(task["dueDate"], "%Y-%m-%d")
-        end_date = date_1 + datetime.timedelta(days=task["rhythm"])
+        end_date = datetime.today() + timedelta(days=task["rhythm"])
         string_date = end_date.strftime("%Y-%m-%d")
 
         # Update the dueDate field
