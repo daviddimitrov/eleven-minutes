@@ -35,6 +35,19 @@ def process_message(event):
         else:
             task_list = ["<strong>{} {}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_priority_emoji(task["priorityLevel"]["name"]), get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n\n" + "\n".join(task_list)
+    elif command == '/short':
+        response = requests.get(
+        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
+        timeout=30
+        )
+        tasks = response.json()
+        print(tasks)
+
+        if not tasks:
+            reply = f"Alles geschafft!"
+        else:
+            task_list = ["<strong>{}</strong> /done_{}\n".format(task["name"], task["id"]) for task in tasks]
+            reply = "".join(task_list)
     elif command == '/all':
         response = requests.get(
         f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks",
