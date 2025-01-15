@@ -38,3 +38,17 @@ class GetTaskDTO:
     duration: int
     dueDate: str
     rhythm: int
+
+@dataclass
+class AsapTaskDTO:
+    id: int
+    user_id: str
+    name: str
+    deleted: int
+
+@dataclass
+class GetAsapTaskDTO:
+    id: int
+    userId: UserDTO
+    name: str
+    deleted: int

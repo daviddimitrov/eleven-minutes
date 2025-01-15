@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Date
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -11,6 +11,7 @@ class User(Base):
     default_duration = Column(Integer)
 
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    asap_tasks = relationship("AsapTask", back_populates="user", cascade="all, delete-orphan")
     command_history = relationship("CommandHistory", back_populates="user", cascade="all, delete-orphan")
 
 class CommandHistory(Base):
@@ -38,3 +39,12 @@ class Task(Base):
 
     user = relationship("User", back_populates="tasks")
     priority_level = relationship("PriorityLevel")
+
+class AsapTask(Base):
+    __tablename__ = "asap_tasks"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"))
+    name = Column(String(255), nullable=False)
+    deleted = Column(Boolean, default=False)
+
+    user = relationship("User", back_populates="asap_tasks")

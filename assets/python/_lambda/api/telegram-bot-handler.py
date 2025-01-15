@@ -22,7 +22,9 @@ def process_message(event):
     command = split_text[0]
     id = split_text[-1]
 
-    if command == '/today':
+    if command == '/start':
+        reply = f"<b>Willkommen, {body["message"]["from"]["first_name"]}!</b> \n\nSchau, was heute zu tun ist: /today"
+    elif command == '/today':
         response = requests.get(
         f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
         timeout=30
@@ -36,18 +38,28 @@ def process_message(event):
             task_list = ["<strong>{} {}</strong>\n📅 {}\n⏱️ {} Minuten\n☑️ /done_{}\n".format(task["name"], get_priority_emoji(task["priorityLevel"]["name"]), get_relative_date(task["dueDate"]), task["duration"], task["id"]) for task in tasks]
             reply = "<b>Heutige Aufgaben:</b>\n\n" + "\n".join(task_list)
     elif command == '/short':
-        response = requests.get(
-        f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
-        timeout=30
+        task_response = requests.get(
+            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/today",
+            timeout=30
         )
-        tasks = response.json()
-        print(tasks)
+        tasks = task_response.json()
 
-        if not tasks:
+        asap_task_response = requests.get(
+            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/asap",
+            timeout=30
+        )
+        asap_tasks = asap_task_response.json()
+
+        if not tasks and not asap_taks:
             reply = f"Alles geschafft!"
         else:
             task_list = ["<strong>{}</strong> /done_{}\n".format(task["name"], task["id"]) for task in tasks]
-            reply = "".join(task_list)
+            task_reply = "".join(task_list)
+
+            asap_task_list = ["<strong>{}</strong> /asap_{}\n".format(asap_task["name"], asap_task["id"]) for asap_task in asap_tasks]
+            asap_task_reply = "".join(asap_task_list)
+
+            reply = task_reply + asap_task_reply
     elif command == '/all':
         response = requests.get(
         f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks",
@@ -83,9 +95,20 @@ def process_message(event):
         )
 
         reply = f"Du hast <b>{task['name']}</b> geschafft!"
+    elif command == '/asap':    
+        response = requests.delete(
+            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/asap-task/{id}"
+        )
+
+        reply = f"Wieder 'was geschafft!"
     else:
-        reply = f"<b>Willkommen, {body["message"]["from"]["first_name"]}!</b> \n\nSchau, was heute zu tun ist: /today"
-    
+        response = requests.post(
+            f"https://n6vigzrqtg.execute-api.eu-central-1.amazonaws.com/dev/user/{chat_id}/tasks/asap?name={command}",
+            timeout=30
+        )
+        reply = f"ASAP Aufgabe {command} erzeugt."
+
+        
     # Telegram API aufrufen
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     requests.post(url, json={"chat_id": chat_id, "text": reply, "parse_mode": "HTML"})
