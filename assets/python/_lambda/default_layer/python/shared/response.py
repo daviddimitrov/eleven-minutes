@@ -15,6 +15,11 @@ class HTTPStatus:
 def create_response(status_code, body):
     return {
         "statusCode": status_code,
-        "headers": {"Content-Type": "application/json"},
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",  # Erlaube alle Origins (oder spezifische URL)
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",  # Zulässige Methoden
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"  # Zulässige Header
+        },
         "body": json.dumps(body, ensure_ascii=False)
     }

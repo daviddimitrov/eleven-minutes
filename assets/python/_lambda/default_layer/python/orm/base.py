@@ -36,6 +36,7 @@ class Task(Base):
     duration = Column(Integer)
     due_date = Column(Date)
     rhythm = Column(Integer)
+    today = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="tasks")
     priority_level = relationship("PriorityLevel")

@@ -1,8 +1,7 @@
 from orm.get_session import get_session
 from orm.base import User, Task, PriorityLevel
-from dto.base import UserDTO, TaskDTO, PriorityLevelDTO, GetTaskDTO
+from dto.base import UserDTO, PriorityLevelDTO, GetTaskDTO
 from shared.response import create_response, HTTPStatus
-from shared.validation import validate_input
 from dataclasses import asdict
 from sqlalchemy import func
 
@@ -25,13 +24,12 @@ def lambda_handler(event, context):
         )
         
         # Fetch tasks for the user
-        tasks = session.query(Task).filter_by(user_id=user_id).filter(Task.due_date <= func.curdate()).order_by(
+        tasks = session.query(Task).filter_by(today=1).order_by(
             Task.priority_level_id.asc(),  # Sort by priority_level_id in ascending order
             Task.due_date.asc(),  # Sort by due_date in descending order
             Task.rhythm.asc()  # Sort by rhythm in ascending order
         ).all()
         todays_tasks = []
-        duration_today = 0
         
         # Filter tasks based on the user’s default duration
         for task in tasks:
@@ -44,13 +42,10 @@ def lambda_handler(event, context):
                 name=task.name,
                 duration=task.duration,
                 dueDate=task.due_date.isoformat(),
-                rhythm=task.rhythm
+                rhythm=task.rhythm,
+                today=task.today
             )
-            
-            temp_duration = duration_today + task_dto.duration            
-            if temp_duration <= user_dto.default_duration:
-                todays_tasks.append(task_dto)
-                duration_today = temp_duration
+            todays_tasks.append(task_dto)
         
         # Return the response
         return create_response(HTTPStatus.OK, [asdict(task) for task in todays_tasks])

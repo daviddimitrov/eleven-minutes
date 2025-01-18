@@ -28,6 +28,7 @@ class TaskDTO:
     duration: int
     due_date: str
     rhythm: int
+    today: bool
 
 @dataclass
 class GetTaskDTO:
@@ -38,6 +39,7 @@ class GetTaskDTO:
     duration: int
     dueDate: str
     rhythm: int
+    today: bool
 
 @dataclass
 class AsapTaskDTO:

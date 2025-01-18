@@ -20,6 +20,7 @@ def lambda_handler(event, context):
         task.duration = body.get("duration")
         task.due_date = body.get("dueDate")
         task.rhythm = body.get("rhythm")
+        task.today = body.get("today")
 
         # Commit the changes to the database
         session.commit()

@@ -1,10 +1,8 @@
 from orm.get_session import get_session
 from orm.base import User, Task, PriorityLevel
-from dto.base import UserDTO, TaskDTO, PriorityLevelDTO, GetTaskDTO
+from dto.base import UserDTO, PriorityLevelDTO, GetTaskDTO
 from shared.response import create_response, HTTPStatus
-from shared.validation import validate_input
 from dataclasses import asdict
-from sqlalchemy import func
 
 
 def lambda_handler(event, context):
@@ -26,7 +24,8 @@ def lambda_handler(event, context):
                 name=task.name,
                 duration=task.duration,
                 dueDate=task.due_date.isoformat(),
-                rhythm=task.rhythm
+                rhythm=task.rhythm,
+                today=task.today
             )
         
         # Return the response
