@@ -14,6 +14,9 @@ def lambda_handler(event, context):
         if user is None:
             return create_response(HTTPStatus.NOT_FOUND, {"message": "User not found"})
         
+        session.query(Task).filter(Task.user_id == user_id).update({"today": 0})
+        session.commit()
+        
         # Fetch tasks for the user
         tasks = session.query(Task).filter_by(user_id=user_id).filter(Task.due_date <= func.curdate()).order_by(
             Task.priority_level_id.asc(),  # Sort by priority_level_id in ascending order
