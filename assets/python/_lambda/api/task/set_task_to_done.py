@@ -19,6 +19,7 @@ def lambda_handler(event, context):
         else:
             end_date = datetime.today() + timedelta(days=task.rhythm)
             task.due_date = end_date
+            task.today = 0
         
         session.commit()
         return create_response(HTTPStatus.ACCEPTED, {"message": "Task set to done successfully"})
